@@ -4,9 +4,11 @@ const fs = require("fs");
 const path = require("path");
 const moment = require("moment");
 const execSync = require("child_process").execSync;
+const os = require("os");
 
 module.exports = class GunbotMonitor {
     constructor() {
+        this.hostname = os.hostname();
         this.instanceNames = config.get("GB_INSTANCES_TO_MONITOR");
         this.instancePath = config.get("GB_INSTANCES_DIR");
         console.log(`Monitoring instance activities for ${this.instanceNames} at ${this.instancePath}`);
@@ -26,6 +28,7 @@ module.exports = class GunbotMonitor {
     };
 
     run() {
+        const _this = this;
         setInterval(() => {
             for (let instName of this.instanceNames) {
                 const latestFileInfo = this.#getMostRecentFile(path.join(this.instancePath, instName, "json"));
@@ -33,13 +36,13 @@ module.exports = class GunbotMonitor {
                 const latestFileTime = moment(latestFileInfo.mtime);
                 var secondsDiff = currentTime.diff(latestFileTime, "seconds");
                 if (secondsDiff >= config.get("GB_IDLE_THRESHOLD")) {
-                    const msg = `${instName} is idling for ${secondsDiff} seconds. Running 'pm2 restart ${instName}' now.`;
+                    const msg = `[${_this.hostname}](${instName}) is idling for ${secondsDiff} seconds. Running 'pm2 restart ${instName}' now.`;
                     console.log(msg);
                     telegramClient.sendMessage(msg);
                     const cmd = `pm2 restart ${instName}`;
                     console.log(execSync(cmd, { encoding: "utf8" }));
                 } else {
-                    console.log(`${instName} is running`);
+                    console.log(`[${_this.hostname}](${instName}) is running`);
                 }
             }
         }, config.get("GB_MONITOR_INTERVAL") * 1000);

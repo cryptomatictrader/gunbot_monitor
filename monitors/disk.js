@@ -1,9 +1,11 @@
 const diskinfo = require("diskinfo");
 const config = require("config");
 const telegramClient = require("../helpers/telegram_client");
+const os = require("os");
 
 module.exports = class DiskMonitor {
     constructor() {
+        this.hostname = os.hostname();
         diskinfo.getDrives(function (err, aDrives) {
             for (var i = 0; i < aDrives.length; i++) {
                 const disk = aDrives[i];
@@ -12,16 +14,17 @@ module.exports = class DiskMonitor {
         });
     }
     run() {
+        const _this = this;
         setInterval(() => {
             diskinfo.getDrives(function (err, aDrives) {
                 for (var i = 0; i < aDrives.length; i++) {
                     const disk = aDrives[i];
                     if (disk.used / disk.blocks >= config.get("DISK_THRESHOLD")) {
-                        const msg = `Disk util threshold reached. mount ${disk.mounted} capacity ${disk.capacity}, available ${disk.available}, used ${disk.used}, blocks ${disk.blocks}`;
+                        const msg = `[${_this.hostname}] Disk utilization threshold reached. mount ${disk.mounted} capacity ${disk.capacity}, available ${disk.available}, used ${disk.used}, blocks ${disk.blocks}`;
                         console.log(msg);
                         telegramClient.sendMessage(msg);
                     } else {
-                        const msg = `mount ${disk.mounted} capacity ${disk.capacity}, available ${disk.available}, used ${disk.used}, blocks ${disk.blocks}`;
+                        const msg = `[${_this.hostname}] mount ${disk.mounted} capacity ${disk.capacity}, available ${disk.available}, used ${disk.used}, blocks ${disk.blocks}`;
                         console.log(msg);
                     }
                 }

@@ -1,9 +1,11 @@
 const SystemHealthMonitor = require("system-health-monitor");
 const config = require("config");
 const telegramClient = require("../helpers/telegram_client");
+const os = require("os");
 
 module.exports = class SystemMonitor {
     constructor() {
+        this.hostname = os.hostname();
         const monitorConfig = {
             checkIntervalMsec: config.get("SYSTEM_RESOURCES_CHECK_INTERVAL") * 1000,
             mem: {
@@ -28,7 +30,7 @@ module.exports = class SystemMonitor {
                 setTimeout(() => {
                     setInterval(() => {
                         if (_this.monitor.isOverloaded()) {
-                            const msg = `System overloaded - free memory ${Math.round(
+                            const msg = `[${_this.hostname}] System overloaded - free memory ${Math.round(
                                 _this.monitor.getMemFree() / 1024
                             )}Gb, total memory ${Math.round(
                                 _this.monitor.getMemTotal() / 1024
@@ -36,7 +38,9 @@ module.exports = class SystemMonitor {
                             console.log(msg);
                             telegramClient.sendMessage(msg);
                         } else {
-                            const msg = `free memory ${Math.round(_this.monitor.getMemFree() / 1024)}Gb, total memory ${Math.round(
+                            const msg = `[${_this.hostname}] free memory ${Math.round(
+                                _this.monitor.getMemFree() / 1024
+                            )}Gb, total memory ${Math.round(
                                 _this.monitor.getMemTotal() / 1024
                             )}Gb, CPU utilization ${_this.monitor.getCpuUsage()}%`;
                             console.log(msg);

@@ -3,9 +3,11 @@ const telegramClient = require("../helpers/telegram_client");
 const TailFile = require("@logdna/tail-file");
 const path = require("path");
 const FastRateLimit = require("fast-ratelimit").FastRateLimit;
+const os = require("os");
 
 module.exports = class ErrorMonitor {
     constructor() {
+        this.hostname = os.hostname();
         this.instanceNames = config.get("GB_INSTANCES_TO_MONITOR");
         this.notificationLimiter = new FastRateLimit({
             threshold: config.get("ERR_NOTIFICATION_THRESHOLD"),
@@ -17,7 +19,7 @@ module.exports = class ErrorMonitor {
         for (let instName of this.instanceNames) {
             for (let suffix of ["out", "error"]) {
                 const outFileName = path.join(process.env.HOME, ".pm2", "logs", `${instName}-${suffix}.log`);
-                console.log(`Monitoring error at ${outFileName}`);
+                console.log(`Monitoring error events at ${outFileName}`);
                 new TailFile(outFileName, { encoding: "utf8" })
                     .on("data", (chunk) => {
                         const sErrorIndex = chunk.indexOf("error");
@@ -31,7 +33,7 @@ module.exports = class ErrorMonitor {
                             const errMsg = chunk.substring(startIndex, 512); // Just get the first 512 chars after the first 'error' or 'Error'
                             // Check if it is allowed to send message using rate limiter
                             if (_this.notificationLimiter.consumeSync(`inst_${instName}`) === true) {
-                                const msg = `*** Error (${instName}) *** ${errMsg}`;
+                                const msg = `[${_this.hostname}](${instName}) ${errMsg}`;
                                 console.log(msg);
                                 telegramClient.sendMessage(msg);
                             }
