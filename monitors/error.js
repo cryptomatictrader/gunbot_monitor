@@ -15,29 +15,39 @@ module.exports = class ErrorMonitor {
     run() {
         const _this = this;
         for (let instName of this.instanceNames) {
-            const fileName = path.join(process.env.HOME, ".pm2", "logs", `${instName}-out.log`);
-            console.log(`Monitoring error at ${fileName}`);
-            new TailFile(fileName, { encoding: "utf8" })
-                .on("data", (chunk) => {
-                    if (chunk.indexOf("error") != -1 || chunk.indexOf("Error") != -1) {
-                        // Check if it is allowed to send message
-                        if (_this.notificationLimiter.consumeSync(`inst_${instName}`) === true) {
-                            const msg = `Error in '${instName}' - ${chunk}`;
-                            console.log(msg);
-                            telegramClient.sendMessage(msg);
+            for (let suffix of ["out", "error"]) {
+                const outFileName = path.join(process.env.HOME, ".pm2", "logs", `${instName}-${suffix}.log`);
+                console.log(`Monitoring error at ${outFileName}`);
+                new TailFile(outFileName, { encoding: "utf8" })
+                    .on("data", (chunk) => {
+                        const sErrorIndex = chunk.indexOf("error");
+                        const lErrorIndex = chunk.indexOf("Error");
+                        if (sErrorIndex != -1 || lErrorIndex != -1) {
+                            const startIndex = Math.min(
+                                [sErrorIndex, lErrorIndex].filter((num) => {
+                                    num > 0;
+                                })
+                            );
+                            const errMsg = chunk.substring(startIndex, 512); // Just get the first 512 chars after the first 'error' or 'Error'
+                            // Check if it is allowed to send message using rate limiter
+                            if (_this.notificationLimiter.consumeSync(`inst_${instName}`) === true) {
+                                const msg = `*** Error (${instName}) *** ${errMsg}`;
+                                console.log(msg);
+                                telegramClient.sendMessage(msg);
+                            }
                         }
-                    }
-                })
-                .on("tail_error", (err) => {
-                    console.error(`Error reading ${fileName}`, err);
-                })
-                .on("error", (err) => {
-                    console.error(`Error reading ${fileName}`, err);
-                })
-                .start()
-                .catch((err) => {
-                    console.error(`Error reading ${fileName}`, err);
-                });
+                    })
+                    .on("tail_error", (err) => {
+                        console.error(`Error reading ${outFileName}`, err);
+                    })
+                    .on("error", (err) => {
+                        console.error(`Error reading ${outFileName}`, err);
+                    })
+                    .start()
+                    .catch((err) => {
+                        console.error(`Error reading ${outFileName}`, err);
+                    });
+            }
         }
     }
 };
