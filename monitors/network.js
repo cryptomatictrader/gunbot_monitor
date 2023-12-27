@@ -19,7 +19,9 @@ module.exports = class IpMonitor {
                         console.log(msg);
                         telegramClient.sendMessage(msg);
                     } else {
-                        const msg = `${config.get("LATENCY_CHECK_HOSTNAME")} network latency is ${latency}ms`;
+                        const msg = `${config.get("LATENCY_CHECK_HOSTNAME")} network latency is ${latency}ms (<${config.get(
+                            "LATENCY_THRESHOLD"
+                        )}ms)`;
                         console.log(msg);
                     }
                 })
