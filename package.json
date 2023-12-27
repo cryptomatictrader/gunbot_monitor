@@ -1,0 +1,24 @@
+{
+    "name": "gunbot_monitor",
+    "version": "1.0.0",
+    "description": "Gunbot monitor",
+    "main": "monitor.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@logdna/tail-file": "^3.0.1",
+        "config": "^3.3.9",
+        "console-stamp": "^3.1.2",
+        "diskinfo": "^0.0.3",
+        "external-ip": "^2.3.1",
+        "fast-ratelimit": "^3.0.1",
+        "js-yaml": "^4.1.0",
+        "latenz": "^0.2.4",
+        "moment": "^2.29.4",
+        "node-telegram-bot-api": "^0.64.0",
+        "system-health-monitor": "^1.2.1"
+    }
+}
