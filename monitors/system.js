@@ -1,26 +1,28 @@
 const SystemHealthMonitor = require("system-health-monitor");
-const config = require("config");
+const config = require("../config");
 const telegramClient = require("../helpers/telegram_client");
 const os = require("os");
+const hostname = os.hostname();
 
 module.exports = class SystemMonitor {
     constructor() {
-        this.hostname = os.hostname();
+        const memoryThreshold = config.MEMORY_THRESHOLD;
+        const cpuThreshold = config.CPU_THRESHOLD;
         const monitorConfig = {
-            checkIntervalMsec: config.get("SYSTEM_RESOURCES_CHECK_INTERVAL") * 1000,
+            checkIntervalMsec: config.SYSTEM_RESOURCES_CHECK_INTERVAL * 1000,
             mem: {
                 thresholdType: "rate",
-                highWatermark: config.get("MEMORY_THRESHOLD"),
+                highWatermark: memoryThreshold,
             },
             cpu: {
                 thresholdType: "rate",
-                highWatermark: config.get("CPU_THRESHOLD"),
+                highWatermark: cpuThreshold,
                 calculationAlgo: "sma",
-                periodPoints: config.get("SYSTEM_RESOURCES_CHECK_DATA_PTS"),
+                periodPoints: config.SYSTEM_RESOURCES_CHECK_DATA_PTS,
             },
         };
         this.monitor = new SystemHealthMonitor(monitorConfig);
-        console.log(`Monitoring memory usage (>${config.get("MEMORY_THRESHOLD")}), cpu usage (>${config.get("CPU_THRESHOLD")})`);
+        console.log(`Monitoring memory usage (>${memoryThreshold}), cpu usage (>${cpuThreshold})`);
     }
     run() {
         const _this = this;
@@ -30,7 +32,7 @@ module.exports = class SystemMonitor {
                 setTimeout(() => {
                     setInterval(() => {
                         if (_this.monitor.isOverloaded()) {
-                            const msg = `[${_this.hostname}] System overloaded - free memory ${Math.round(
+                            const msg = `[${hostname}] System overloaded - free memory ${Math.round(
                                 _this.monitor.getMemFree() / 1024
                             )}Gb, total memory ${Math.round(
                                 _this.monitor.getMemTotal() / 1024
@@ -38,15 +40,15 @@ module.exports = class SystemMonitor {
                             console.log(msg);
                             telegramClient.sendMessage(msg);
                         } else {
-                            const msg = `[${_this.hostname}] free memory ${Math.round(
+                            const msg = `[${hostname}] free memory ${Math.round(
                                 _this.monitor.getMemFree() / 1024
                             )}Gb, total memory ${Math.round(
                                 _this.monitor.getMemTotal() / 1024
                             )}Gb, CPU utilization ${_this.monitor.getCpuUsage()}%`;
                             console.log(msg);
                         }
-                    }, config.get("SYSTEM_RESOURCES_CHECK_INTERVAL") * 1000 * 60);
-                }, (config.get("SYSTEM_RESOURCES_CHECK_DATA_PTS") + 1) * config.get("SYSTEM_RESOURCES_CHECK_INTERVAL") * 1000);
+                    }, config.SYSTEM_RESOURCES_CHECK_INTERVAL * 1000 * 60);
+                }, (config.SYSTEM_RESOURCES_CHECK_DATA_PTS + 1) * config.SYSTEM_RESOURCES_CHECK_INTERVAL * 1000);
             })
             .catch((err) => {
                 console.error("Error starting system monitor", err);

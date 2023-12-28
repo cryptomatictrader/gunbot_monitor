@@ -1,36 +1,32 @@
-const config = require("config");
+const config = require("../config");
 const telegramClient = require("../helpers/telegram_client");
 const Latenz = require("latenz");
 const os = require("os");
+const hostname = os.hostname();
 
 module.exports = class IpMonitor {
-    constructor() {
-        this.hostname = os.hostname();
-    }
+    constructor() {}
     run() {
-        console.log(`Monitoring network latency (${config.get("LATENCY_CHECK_HOSTNAME")}) >${config.get("LATENCY_THRESHOLD")}ms`);
-        const _this = this;
+        const latencyCheckHostName = config.LATENCY_CHECK_HOSTNAME;
+        const latencyCheckThreshold = config.LATENCY_THRESHOLD;
+        console.log(`Monitoring network latency (${latencyCheckHostName}) >${latencyCheckThreshold}ms`);
         setInterval(() => {
             new Latenz()
-                .measure(config.get("LATENCY_CHECK_HOSTNAME"))
+                .measure(latencyCheckHostName)
                 .then((result) => {
                     const latency = result[2].time;
-                    if (latency >= config.get("LATENCY_THRESHOLD")) {
-                        const msg = `[${_this.hostname}] ${config.get(
-                            "LATENCY_CHECK_HOSTNAME"
-                        )} network latency is ${latency}ms (>${config.get("LATENCY_THRESHOLD")}ms)`;
+                    if (latency >= latencyCheckThreshold) {
+                        const msg = `[${hostname}] ${latencyCheckHostName} network latency is ${latency}ms (>${latencyCheckThreshold}ms)`;
                         console.log(msg);
                         telegramClient.sendMessage(msg);
                     } else {
-                        const msg = `[${_this.hostname}] ${config.get(
-                            "LATENCY_CHECK_HOSTNAME"
-                        )} network latency is ${latency}ms (<${config.get("LATENCY_THRESHOLD")}ms)`;
+                        const msg = `[${hostname}] ${latencyCheckHostName} network latency is ${latency}ms (<${latencyCheckThreshold}ms)`;
                         console.log(msg);
                     }
                 })
                 .catch((err) => {
                     console.error("Error checking network latency", err);
                 });
-        }, config.get("NETWORK_MONITOR_INTERVAL") * 1000);
+        }, config.NETWORK_MONITOR_INTERVAL * 1000);
     }
 };

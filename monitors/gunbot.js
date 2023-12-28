@@ -1,16 +1,16 @@
-const config = require("config");
+const config = require("../config");
 const telegramClient = require("../helpers/telegram_client");
 const fs = require("fs");
 const path = require("path");
 const moment = require("moment");
 const execSync = require("child_process").execSync;
 const os = require("os");
+const hostname = os.hostname();
 
 module.exports = class GunbotMonitor {
     constructor() {
-        this.hostname = os.hostname();
-        this.instanceNames = config.get("GB_INSTANCES_TO_MONITOR");
-        this.instancePath = config.get("GB_INSTANCES_DIR");
+        this.instanceNames = config.GB_INSTANCES_TO_MONITOR;
+        this.instancePath = config.GB_INSTANCES_DIR;
         console.log(`Monitoring instance activities for ${this.instanceNames} at ${this.instancePath}`);
     }
 
@@ -35,16 +35,16 @@ module.exports = class GunbotMonitor {
                 const currentTime = moment();
                 const latestFileTime = moment(latestFileInfo.mtime);
                 var secondsDiff = currentTime.diff(latestFileTime, "seconds");
-                if (secondsDiff >= config.get("GB_IDLE_THRESHOLD")) {
-                    const msg = `[${_this.hostname}](${instName}) is idling for ${secondsDiff} seconds. Running 'pm2 restart ${instName}' now.`;
+                if (secondsDiff >= config.GB_IDLE_THRESHOLD) {
+                    const msg = `[${hostname}](${instName}) is idling for ${secondsDiff} seconds. Running 'pm2 restart ${instName}' now.`;
                     console.log(msg);
                     telegramClient.sendMessage(msg);
                     const cmd = `pm2 restart ${instName}`;
                     console.log(execSync(cmd, { encoding: "utf8" }));
                 } else {
-                    console.log(`[${_this.hostname}](${instName}) is running`);
+                    console.log(`[${hostname}] *${instName}* is running`);
                 }
             }
-        }, config.get("GB_MONITOR_INTERVAL") * 1000);
+        }, config.GB_MONITOR_INTERVAL * 1000);
     }
 };

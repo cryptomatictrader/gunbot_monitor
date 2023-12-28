@@ -1,17 +1,17 @@
-const config = require("config");
+const config = require("../config");
 const telegramClient = require("../helpers/telegram_client");
 const TailFile = require("@logdna/tail-file");
 const path = require("path");
 const FastRateLimit = require("fast-ratelimit").FastRateLimit;
 const os = require("os");
+const hostname = os.hostname();
 
 module.exports = class ErrorMonitor {
     constructor() {
-        this.hostname = os.hostname();
-        this.instanceNames = config.get("GB_INSTANCES_TO_MONITOR");
+        this.instanceNames = config.GB_INSTANCES_TO_MONITOR;
         this.notificationLimiter = new FastRateLimit({
-            threshold: config.get("ERR_NOTIFICATION_THRESHOLD"),
-            ttl: config.get("ERR_NOTIFICATION_TTL"),
+            threshold: config.ERR_NOTIFICATION_THRESHOLD,
+            ttl: config.ERR_NOTIFICATION_TTL,
         });
     }
     run() {
@@ -26,14 +26,14 @@ module.exports = class ErrorMonitor {
                         const lErrorIndex = chunk.indexOf("Error");
                         if (sErrorIndex != -1 || lErrorIndex != -1) {
                             const startIndex = Math.min(
-                                [sErrorIndex, lErrorIndex].filter((num) => {
-                                    num > 0;
+                                ...[sErrorIndex, lErrorIndex].filter((num) => {
+                                    return num > 0;
                                 })
                             );
-                            const errMsg = chunk.substring(startIndex, 512); // Just get the first 512 chars after the first 'error' or 'Error'
+                            const errMsg = chunk.substring(startIndex, startIndex + 1024); // Just get the first 512 chars after the first 'error' or 'Error'
                             // Check if it is allowed to send message using rate limiter
                             if (_this.notificationLimiter.consumeSync(`inst_${instName}`) === true) {
-                                const msg = `[${_this.hostname}](${instName}) ${errMsg}`;
+                                const msg = `[${hostname}] *${instName}* ${errMsg}`;
                                 console.log(msg);
                                 telegramClient.sendMessage(msg);
                             }
