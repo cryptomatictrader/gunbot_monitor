@@ -27,7 +27,7 @@ module.exports = class IpMonitor {
                             console.log(msg);
                             telegramClient.sendMessage(msg);
                         } else {
-                            const msg = `Average network latency from ${hostname} to ${latencyCheckHostName} ${_this.latencyHistory.getAverage()}ms (<${latencyCheckThreshold}ms), current ${latency}`;
+                            const msg = `Average network latency from ${hostname} to ${latencyCheckHostName} ${_this.latencyHistory.getAverage()}ms (<${latencyCheckThreshold}ms), current ${latency}ms`;
                             console.log(msg);
                         }
                     })

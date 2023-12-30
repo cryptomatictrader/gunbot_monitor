@@ -36,14 +36,14 @@ module.exports = class GunbotMonitor {
                 var secondsDiff = currentTime.diff(latestFileTime, "seconds");
                 if (secondsDiff >= config.GB_IDLE_THRESHOLD) {
                     // Zipping up log and json files
-                    const zipFileName = `${moment().format("YYYYMMMDD-HH-mm-ss")}-logs.zip`;
+                    const zipFileName = `${moment().format("MMMDD-HH-mm-ss")}-logs.zip`;
                     try {
                         execSync(`mkdir -p ${path.join("..", "reports")}`, { encoding: "utf8" });
                         const outFileName = path.join(process.env.HOME, ".pm2", "logs", `${instName}-out.log`);
                         const errFileName = path.join(process.env.HOME, ".pm2", "logs", `${instName}-error.log`);
                         const jsonFolder = path.join(path.join(this.instancePath, instName, "json"));
                         console.log(
-                            execSync(`zip -r ${path.join("..", "reports", zipFileName)} ${outFileName} ${errFileName} ${jsonFolder}`, {
+                            execSync(`zip -q -r ${path.join("..", "reports", zipFileName)} ${outFileName} ${errFileName} ${jsonFolder}`, {
                                 encoding: "utf8",
                             })
                         );
