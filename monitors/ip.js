@@ -6,31 +6,39 @@ const hostname = os.hostname();
 
 module.exports = class IpMonitor {
     constructor() {
-        getIP()((err, ip) => {
-            if (err) {
-                console.error(`Error getting external IP`, err);
-                throw err;
-            }
-            this.prevIp = ip;
-            console.log(`Monitoring IP change. Current IP is ${this.prevIp}`);
-        });
-    }
-    run() {
-        const _this = this;
-        setInterval(() => {
+        try {
             getIP()((err, ip) => {
                 if (err) {
                     console.error(`Error getting external IP`, err);
-                }
-                if (ip != this.prevIp) {
-                    this.prevIp = ip;
-                    const msg = `[${hostname}] New IP in use: ${ip}`;
-                    console.log(msg);
-                    telegramClient.sendMessage(msg);
                 } else {
-                    console.log(`[${hostname}] No IP change (${this.prevIp})`);
+                    this.prevIp = ip;
+                    console.log(`Monitoring IP change. Current IP ${this.prevIp}`);
                 }
             });
+        } catch (e) {
+            console.err("Error getting external IP", e);
+        }
+    }
+    run() {
+        setInterval(() => {
+            try {
+                getIP()((err, ip) => {
+                    if (err) {
+                        console.error(`Error getting external IP`, err);
+                    } else {
+                        if (ip != this.prevIp) {
+                            const msg = `New IP detected in ${hostname}\nOld IP: ${this.prevIp}\nNew IP: ${ip}`;
+                            console.log(msg);
+                            telegramClient.sendMessage(msg);
+                            this.prevIp = ip;
+                        } else {
+                            console.log(`No IP change in ${hostname}. Current IP ${this.prevIp}`);
+                        }
+                    }
+                });
+            } catch (e) {
+                console.err("Error getting external IP", e);
+            }
         }, config.IP_MONITOR_INTERVAL * 1000);
     }
 };

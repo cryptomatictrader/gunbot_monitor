@@ -32,15 +32,15 @@ module.exports = class SystemMonitor {
                 setTimeout(() => {
                     setInterval(() => {
                         if (_this.monitor.isOverloaded()) {
-                            const msg = `[${hostname}] System overloaded - free memory ${Math.round(
+                            const msg = `System overloaded detected in ${hostname}\nFree memory: ${Math.round(
                                 _this.monitor.getMemFree() / 1024
-                            )}Gb, total memory ${Math.round(
+                            )}Gb\nTotal memory: ${Math.round(
                                 _this.monitor.getMemTotal() / 1024
-                            )}Gb, CPU utilization ${_this.monitor.getCpuUsage()}%`;
+                            )}Gb\nCPU utilization: ${_this.monitor.getCpuUsage()}%`;
                             console.log(msg);
                             telegramClient.sendMessage(msg);
                         } else {
-                            const msg = `[${hostname}] free memory ${Math.round(
+                            const msg = `System stats in ${hostname} free memory ${Math.round(
                                 _this.monitor.getMemFree() / 1024
                             )}Gb, total memory ${Math.round(
                                 _this.monitor.getMemTotal() / 1024
