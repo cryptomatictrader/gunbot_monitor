@@ -30,20 +30,21 @@ module.exports = class GunbotMonitor {
     run() {
         setInterval(() => {
             for (let instName of this.instanceNames) {
-                const latestFileInfo = this.#getMostRecentFile(path.join(this.instancePath, instName, "json"));
+                const jsonFolder = path.join(path.join(this.instancePath, instName, "json"));
+                const latestFileInfo = this.#getMostRecentFile(jsonFolder);
                 const currentTime = moment();
                 const latestFileTime = moment(latestFileInfo.mtime);
                 var secondsDiff = currentTime.diff(latestFileTime, "seconds");
                 if (secondsDiff >= config.GB_IDLE_THRESHOLD) {
                     // Zipping up log and json files
                     const zipFileName = `${moment().format("MMMDD-HH-mm-ss")}-logs.zip`;
+                    const zipFileFullPath = path.join(this.instancePath, instName, "reports");
                     try {
-                        execSync(`mkdir -p ${path.join("..", "reports")}`, { encoding: "utf8" });
+                        execSync(`mkdir -p ${zipFileFullPath}`, { encoding: "utf8" });
                         const outFileName = path.join(process.env.HOME, ".pm2", "logs", `${instName}-out.log`);
                         const errFileName = path.join(process.env.HOME, ".pm2", "logs", `${instName}-error.log`);
-                        const jsonFolder = path.join(path.join(this.instancePath, instName, "json"));
                         console.log(
-                            execSync(`zip -q -r ${path.join("..", "reports", zipFileName)} ${outFileName} ${errFileName} ${jsonFolder}`, {
+                            execSync(`zip -q -r ${path.join(zipFileFullPath, zipFileName)} ${outFileName} ${errFileName} ${jsonFolder}`, {
                                 encoding: "utf8",
                             })
                         );
@@ -51,7 +52,7 @@ module.exports = class GunbotMonitor {
                         console.err(e);
                     }
                     // Informing the user
-                    const msg = `** Idle process detected in ${hostname}:${instName} **\nDuration: ${secondsDiff}s\n${zipFileName} created in 'reports' directory\nRunning 'pm2 restart ${instName}' now`;
+                    const msg = `** Idle process detected in ${hostname}:${instName} **\nDuration: ${secondsDiff}s\n${zipFileName} created in ${zipFileFullPath}\nRunning 'pm2 restart ${instName}' now`;
                     console.log(msg);
                     telegramClient.sendMessage(msg);
                     const cmd = `pm2 restart ${instName}`;
