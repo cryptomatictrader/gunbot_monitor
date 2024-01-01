@@ -32,7 +32,7 @@ module.exports = class SystemMonitor {
                 setTimeout(() => {
                     setInterval(() => {
                         if (_this.monitor.isOverloaded()) {
-                            const msg = `System overloaded detected in ${hostname}\nFree memory: ${Math.round(
+                            const msg = `** System overloaded in ${hostname} **\nFree memory: ${Math.round(
                                 _this.monitor.getMemFree() / 1024
                             )}Gb\nTotal memory: ${Math.round(
                                 _this.monitor.getMemTotal() / 1024

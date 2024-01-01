@@ -51,7 +51,7 @@ module.exports = class GunbotMonitor {
                         console.err(e);
                     }
                     // Informing the user
-                    const msg = `Idle process detected in ${hostname}:${instName}\nDuration: ${secondsDiff}s\n${zipFileName} created in 'reports' directory\nRunning 'pm2 restart ${instName}' now`;
+                    const msg = `** Idle process detected in ${hostname}:${instName} **\nDuration: ${secondsDiff}s\n${zipFileName} created in 'reports' directory\nRunning 'pm2 restart ${instName}' now`;
                     console.log(msg);
                     telegramClient.sendMessage(msg);
                     const cmd = `pm2 restart ${instName}`;

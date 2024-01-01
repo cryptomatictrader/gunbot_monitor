@@ -27,7 +27,7 @@ module.exports = class IpMonitor {
                         console.error(`Error getting external IP`, err);
                     } else {
                         if (ip != this.prevIp) {
-                            const msg = `New IP detected in ${hostname}\nOld IP: ${this.prevIp}\nNew IP: ${ip}`;
+                            const msg = `** New IP detected in ${hostname} **\nOld IP: ${this.prevIp}\nNew IP: ${ip}`;
                             console.log(msg);
                             telegramClient.sendMessage(msg);
                             this.prevIp = ip;

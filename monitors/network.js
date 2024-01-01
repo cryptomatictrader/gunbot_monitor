@@ -23,7 +23,7 @@ module.exports = class IpMonitor {
                         _this.latencyHistory.enqueue(latency);
                         if (!_this.latencyHistory.isFull()) return;
                         if (_this.latencyHistory.getAverage() >= latencyCheckThreshold) {
-                            const msg = `Average network latency threshold reached in ${hostname}\nExchange host: ${latencyCheckHostName}\nAverage: ${_this.latencyHistory.getAverage()}ms (>${latencyCheckThreshold}ms)\nCurrent: ${latency}ms`;
+                            const msg = `** Average network latency threshold reached in ${hostname} **\nExchange host: *${latencyCheckHostName}*\nAverage: *${_this.latencyHistory.getAverage()}ms* (>${latencyCheckThreshold}ms)\nCurrent: *${latency}ms*`;
                             console.log(msg);
                             telegramClient.sendMessage(msg);
                         } else {

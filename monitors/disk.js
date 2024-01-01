@@ -27,7 +27,7 @@ module.exports = class DiskMonitor {
                         for (var i = 0; i < aDrives.length; i++) {
                             const disk = aDrives[i];
                             if (disk.used / disk.blocks >= config.DISK_THRESHOLD) {
-                                const msg = `Disk utilization threshold reached in ${hostname}\nMount: ${disk.mounted}\nCapacity: ${disk.capacity}\nAvailable: ${disk.available}\nUsed: ${disk.used}\nBlocks: ${disk.blocks}`;
+                                const msg = `** Disk utilization threshold reached in ${hostname} **\nMount: ${disk.mounted}\nCapacity: ${disk.capacity}\nAvailable: ${disk.available}\nUsed: ${disk.used}\nBlocks: ${disk.blocks}`;
                                 console.log(msg);
                                 telegramClient.sendMessage(msg);
                             } else {

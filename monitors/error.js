@@ -36,7 +36,7 @@ module.exports = class ErrorMonitor {
                             const errMsg = chunk.substring(startIndex, startIndex + numOfCharsAfter); // Just get the first 1024 chars after the first 'error' or 'Error'
                             // Check if it is allowed to send message using rate limiter
                             if (_this.notificationLimiter.consumeSync(`inst_${instName}`) === true) {
-                                const msg = `Error detected in ${hostname}:${instName}\n${errMsg}`;
+                                const msg = `** Error detected in ${hostname}:${instName} **\n${errMsg}`;
                                 console.log(msg);
                                 telegramClient.sendMessage(msg);
                             }
