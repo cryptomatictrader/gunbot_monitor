@@ -27,18 +27,20 @@ module.exports = class ErrorMonitor {
                         const sErrorIndex = chunk.indexOf("error");
                         const lErrorIndex = chunk.indexOf("Error");
                         if (sErrorIndex != -1 || lErrorIndex != -1) {
-                            let startIndex = Math.min(
-                                ...[sErrorIndex, lErrorIndex].filter((num) => {
-                                    return num >= 0;
-                                })
-                            );
-                            startIndex = startIndex - numOfCharsBefore >= 0 ? startIndex - numOfCharsBefore : 0;
-                            const errMsg = chunk.substring(startIndex, startIndex + numOfCharsAfter); // Just get the first 1024 chars after the first 'error' or 'Error'
-                            // Check if it is allowed to send message using rate limiter
-                            if (_this.notificationLimiter.consumeSync(`inst_${instName}`) === true) {
-                                const msg = `** Error detected in ${hostname}:${instName} **\n${errMsg}`;
-                                console.log(msg);
-                                telegramClient.sendMessage(msg);
+                            if (chunk.indexOf("Exchange_Timeout") == -1) {
+                                let startIndex = Math.min(
+                                    ...[sErrorIndex, lErrorIndex].filter((num) => {
+                                        return num >= 0;
+                                    })
+                                );
+                                startIndex = startIndex - numOfCharsBefore >= 0 ? startIndex - numOfCharsBefore : 0;
+                                const errMsg = chunk.substring(startIndex, startIndex + numOfCharsAfter); // Just get the first 1024 chars after the first 'error' or 'Error'
+                                // Check if it is allowed to send message using rate limiter
+                                if (_this.notificationLimiter.consumeSync(`inst_${instName}`) === true) {
+                                    const msg = `** Error detected in ${hostname}:${instName} **\n${errMsg}`;
+                                    console.log(msg);
+                                    telegramClient.sendMessage(msg);
+                                }
                             }
                         }
                     })
